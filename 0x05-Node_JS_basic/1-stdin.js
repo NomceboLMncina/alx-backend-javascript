@@ -11,7 +11,7 @@
  * // Your name is: Alice
  * // This important software is now closing
  */
-process.stdout.write('Welcome to ALX, what is your name?\n');
+process.stdout.write('Welcome to Holberton School, what is your name?\n');
 
 process.stdin.on('readable', () => {
   const chunk = process.stdin.read();
