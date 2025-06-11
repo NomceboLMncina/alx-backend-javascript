@@ -1,99 +1,117 @@
-/* eslint-disable jest/expect-expect */
-const assert = require('assert');
-const http = require('http');
+const request = require("request");
+const {describe, it} = require("mocha");
+const expect = require("chai").expect;
 
-// Set up the endpoint URLs
-const BASE_URL = 'http://localhost:7866';
-const LOGIN_URL = `${BASE_URL}/login`;
-const PAYMENTS_URL = `${BASE_URL}/available_payments`;
-
-// Test the /login endpoint
-describe('/login', () => {
-  it('should return a welcome message with the username', () => new Promise((done) => {
-    // Define the request payload
-    const payload = JSON.stringify({ userName: 'john_doe' });
-
-    // Set up the request options
+describe("Index page", function() {
     const options = {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      url: LOGIN_URL,
-      body: payload,
-    };
-
-    // Send the request
-    const req = http.request(options, (res) => {
-      let data = '';
-
-      // Set up the response listener
-      res.on('data', (chunk) => {
-        data += chunk;
-      });
-
-      // Set up the end listener
-      res.on('end', () => {
-        // Parse the response body
-        const body = JSON.parse(data);
-
-        // Check the status code
-        assert.strictEqual(res.statusCode, 200);
-
-        // Check the response message
-        assert.strictEqual(body.message, 'Welcome john_doe');
-
-        // Done
-        done();
-      });
+	url: "http://localhost:7865/",
+	method: "GET"
+    }
+    it("check correct status code", function(done) {
+	request(options, function(err, res, body) {
+	    expect(res.statusCode).to.equal(200);
+	    done();
+	});
     });
-
-    // Send the request payload
-    req.write(payload);
-
-    // End the request
-    req.end();
-  }));
+    it("check correct content", function(done) {
+	request(options, function(err, res, body) {
+	    expect(body).to.equal("Welcome to the payment system");
+	    done();
+	});
+    });
 });
 
-// Test the /available_payments endpoint
-describe('/available_payments', () => {
-  it('should return the list of available payments', () => new Promise((done) => {
-    // Set up the request options
-    const options = {
-      method: 'GET',
-      url: PAYMENTS_URL,
-    };
-
-    // Send the request
-    const req = http.request(options, (res) => {
-      let data = '';
-
-      // Set up the response listener
-      res.on('data', (chunk) => {
-        data += chunk;
-      });
-
-      // Set up the end listener
-      res.on('end', () => {
-        // Parse the response body
-        const body = JSON.parse(data);
-
-        // Check the status code
-        assert.strictEqual(res.statusCode, 200);
-
-        // Check the response structure
-        assert.deepStrictEqual(body, {
-          payment_methods: {
-            credit_cards: true,
-            paypal: false,
-          },
-        });
-
-        // Done
-        done();
-      });
+describe("Cart page", function() {
+    it("check correct status code for correct url", function(done) {
+	request.get("http://localhost:7865/cart/12", function(err, res, body) {
+	    expect(res.statusCode).to.equal(200);
+	    done();
+	});
     });
+    it("check correct content for correct url", function(done) {
+	request.get("http://localhost:7865/cart/12", function(err, res, body) {
+	    expect(body).to.equal("Payment methods for cart 12");
+	    done();
+	});
+    });
+    it("check correct status code for incorrect url", function(done) {
+	request.get("http://localhost:7865/cart/kim", function(err, res, body) {
+	    expect(res.statusCode).to.equal(404);
+	    done();
+	});
+    });
+});
 
-    // End the request
-    req.end();
-  }));
+describe("Available_payments page", function() {
+    it("check correct status for correct url", function() {
+	request.get("http://localhost:7865/available_payments", (err, res, body) => {
+	    if (err) {
+		expect(res.statusCode).to.not.equal(200);
+	    } else {
+		expect(res.statusCode).to.equal(200);
+	    }
+	});
+    });
+    it("check correct body content for correct url", function() {
+	const option = {json: true};
+	const payLoad = {
+	    payment_methods: {
+		credit_cards: true,
+		paypal: false
+	    }
+	}
+	request.get("http://localhost:7865/available_payments", option, (err, res, body) => {
+	    if (err) {
+		expect(res.statusCode).to.not.equal(200);
+	    } else {
+		expect(body).to.deep.equal(payLoad);
+	    }
+	});
+    });
+});
+
+describe("Login", function() {
+    it("check correct status code for request that's sent properly", function(done) {
+	const opt = {
+	    url: "http://localhost:7865/login",
+	    json: true,
+	    body: {
+		userName: 'JOE'
+	    }
+	};
+	request.post(opt, function(err, res, body) {
+	    expect(res.statusCode).to.equal(200);
+	    done();
+	});
+    });
+    it("check correct content for request that's sent properly", function(done) {
+	const opts = {
+	    url: "http://localhost:7865/login",
+	    json: true,
+	    body: {
+		userName: 'JOE'
+	    }
+	};
+	request.post(opts, function(err, res, body) {
+	    if (err) {
+		expect(res.statusCode).to.not.equal(200);
+	    } else {
+		expect(body).to.contain('Welcome JOE');
+	    }
+	    done();
+	});
+    });
+    it("check correct status code for request that's not sent properly", function(done) {
+	const op = {
+	    url: "http://localhost:7865/login",
+	    json: true,
+	    body: {
+		usame: 'JOE'
+	    }
+	};
+	request.post(op, function(err, res, body) {
+	    expect(res.statusCode).to.equal(404);
+	    done();
+	});
+    });
 });
