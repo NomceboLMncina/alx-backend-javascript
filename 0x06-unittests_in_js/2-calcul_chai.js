@@ -1,32 +1,23 @@
-/**
- * Performs a mathematical operation on two rounded numbers
- * @param {string} type - The type of operation to perform (SUM, SUBTRACT,
- * or DIVIDE)
- * @param {number} a - The first number to be rounded and used in the
- * operation
- * @param {number} b - The second number to be rounded and used in the
- * operation
- * @returns {number|string} The result of the operation, or "Error" if
- * the operation is division and b is rounded to 0
- */
 function calculateNumber(type, a, b) {
-  const roundedA = Math.round(a);
-  const roundedB = Math.round(b);
-
-  switch (type) {
+    const an = Math.round(a);
+    const bn = Math.round(b);
+    let c = 0;
+    switch (type) {
     case 'SUM':
-      return roundedA + roundedB;
+	c = an + bn;
+	break;
     case 'SUBTRACT':
-      return roundedA - roundedB;
+	c = an - bn;
+	break;
     case 'DIVIDE':
-      if (roundedB === 0) {
-        return 'Error';
+      if (bn === 0) {
+            c = "Error";
+      } else {
+            c = an / bn;
       }
-      return roundedA / roundedB;
-
-    default:
-      throw new Error(`Invalid type: ${type}`);
-  }
+      break;
+    }
+    return c;
 }
 
 module.exports = calculateNumber;
